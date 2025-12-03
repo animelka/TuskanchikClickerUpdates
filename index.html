@@ -79,29 +79,23 @@ canvas.flag {
     border: 2px solid #fff;
     transition: .2s;
 }
-canvas.flag:hover {
-    transform: scale(1.1);
-    border-color: #333;
-}
+canvas.flag:hover { transform: scale(1.1); border-color: #333; }
 </style>
 </head>
 <body>
 
-<!-- ===== Выбор языка ===== -->
 <div id="langSelect" class="screen active">
 <h1>Выберите язык / Choose Language</h1>
 <canvas class="flag" id="flagUSA" onclick="setLanguage('en')"></canvas>
 <canvas class="flag" id="flagRU" onclick="setLanguage('ru')"></canvas>
 </div>
 
-<!-- ===== Главное меню ===== -->
 <div id="menu" class="screen">
 <h1 id="menuTitle">Wordle</h1>
 <button id="playBtn" onclick="openGame()">Играть</button>
 <button id="settingsBtn" onclick="openSettings()">Настройки</button>
 </div>
 
-<!-- ===== Настройки ===== -->
 <div id="settings" class="screen">
 <h1 id="settingsTitle">Настройки</h1>
 <button id="changeLang" onclick="openLangBack()">Сменить язык</button>
@@ -109,7 +103,6 @@ canvas.flag:hover {
 <button onclick="backToMenu()">⬅ Вернуться</button>
 </div>
 
-<!-- ===== Игра ===== -->
 <div id="game" class="screen">
 <h1 id="gameTitle">Wordle</h1>
 <div id="board"></div>
@@ -120,18 +113,16 @@ canvas.flag:hover {
 </div>
 
 <script>
-// ===== Флаги через Canvas =====
+// ===== Флаги на Canvas =====
 function drawUSA(canvas) {
     const ctx = canvas.getContext('2d');
     const w = canvas.width;
     const h = canvas.height;
     const stripeH = h/13;
-    // Красные и белые полосы
     for(let i=0;i<13;i++){
         ctx.fillStyle = (i%2===0)?'#B22234':'#fff';
         ctx.fillRect(0,i*stripeH,w,stripeH);
     }
-    // Синее поле
     ctx.fillStyle = '#3C3B6E';
     ctx.fillRect(0,0,w*0.4,stripeH*7);
 }
@@ -140,12 +131,9 @@ function drawRU(canvas) {
     const w = canvas.width;
     const h = canvas.height;
     const stripeH = h/3;
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0,0,w,stripeH);
-    ctx.fillStyle = '#0039A6';
-    ctx.fillRect(0,stripeH,w,stripeH);
-    ctx.fillStyle = '#D52B1E';
-    ctx.fillRect(0,2*stripeH,w,stripeH);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,stripeH);
+    ctx.fillStyle = '#0039A6'; ctx.fillRect(0,stripeH,w,stripeH);
+    ctx.fillStyle = '#D52B1E'; ctx.fillRect(0,2*stripeH,w,stripeH);
 }
 drawUSA(document.getElementById('flagUSA'));
 drawRU(document.getElementById('flagRU'));
@@ -223,73 +211,7 @@ function enterWord(){
 </script>
 
 </body>
-</html>random()*currentList.length)];
-    WORD_LEN=secretWord.length;
-    document.getElementById("langSelect").classList.remove("active");
-    document.getElementById("menu").classList.add("active");
-    updateTexts();
-}
-
-// ===== Обновление текста =====
-function updateTexts(){
-    if(currentLang==="ru"){
-        playBtn.innerText="Играть"; settingsBtn.innerText="Настройки"; menuTitle.innerText="Меню";
-        settingsTitle.innerText="Настройки"; changeLang.innerText="Сменить язык";
-        gameTitle.innerText="Игра Wordle";
-    } else {
-        playBtn.innerText="Play"; settingsBtn.innerText="Settings"; menuTitle.innerText="Menu";
-        settingsTitle.innerText="Settings"; changeLang.innerText="Change Language";
-        gameTitle.innerText="Wordle Game";
-    }
-}
-
-// ===== Переходы =====
-function hideAll(){document.querySelectorAll('.screen').forEach(s=>s.classList.remove("active"));}
-function openGame(){hideAll();document.getElementById("game").classList.add("active");startBoard();}
-function openSettings(){hideAll();document.getElementById("settings").classList.add("active");}
-function openLangBack(){hideAll();document.getElementById("langSelect").classList.add("active");}
-function backToMenu(){hideAll();document.getElementById("menu").classList.add("active");}
-
-// ===== Игровое поле =====
-function startBoard(){
-    row=0;
-    document.getElementById("board").innerHTML="";
-    for(let r=0;r<MAX_ROWS;r++){
-        let div=document.createElement("div"); div.className="row";
-        for(let c=0;c<WORD_LEN;c++){
-            let cell=document.createElement("div"); cell.className="cell"; cell.id=`r${r}c${c}`;
-            div.appendChild(cell);
-        }
-        document.getElementById("board").appendChild(div);
-    }
-    document.getElementById("input").value="";
-    document.getElementById("input").maxLength=WORD_LEN;
-}
-
-// ===== Ввод слова =====
-function enterWord(){
-    let input=document.getElementById("input");
-    let guess=input.value.toLowerCase();
-    if(guess.length!==WORD_LEN) return;
-    for(let i=0;i<WORD_LEN;i++){
-        let cell=document.getElementById(`r${row}c${i}`);
-        cell.textContent=guess[i];
-        if(guess[i]===secretWord[i]) cell.classList.add("correct");
-        else if(secretWord.includes(guess[i])) cell.classList.add("semi");
-        else cell.classList.add("wrong");
-    }
-    if(guess===secretWord) alert(currentLang==="ru"?"ПОБЕДА!":"WIN!");
-    row++;
-    input.value="";
-    if(row===MAX_ROWS) alert((currentLang==="ru"?"Было слово: ":"Word was: ")+secretWord);
-}
-</script>
-
-</body>
-</html>    background: #fff5d7;
-    color: #333;
-    cursor: pointer;
-    transition: .2s;
+</html>.2s;
 }
 button:hover { background: #ffe680; transform: scale(1.05); }
 /* ===== Игровое поле ===== */
