@@ -48,7 +48,7 @@
 
         <div id="loading-screen" class="ui-layer">
             <div class="author-title" style="color:#000;">ANIMELKA'S DEV</div>
-            <div style="color:#000;" id="loading-text">Loading the Turbo Experience...</div>
+            <div style="color:#000;" id="loading-text">Loading the Ultimate Experience...</div>
             <div class="loader-bar"><div class="loader-progress" style="background:#000;" id="loader-progress"></div></div>
         </div>
 
@@ -114,15 +114,16 @@ window.onload = function() {
     let walls = [], lastWallY = 0;
     let airParticles = []; 
     let debrisParticles = []; 
-    let clouds = []; // Массив для облаков
+    let clouds = []; 
     let cameraTargetY = 0;
     let cameraY = 0;
     let shakeIntensity = 0;
     
     const WALL_HEIGHT = 45;
     const WALL_SPACING = 350;
-    const HOLE_SIZE = 180;
-    const MAX_DIFFICULTY = 300; // Увеличим для более плавного ускорения
+    const HOLE_SIZE_START = 180;
+    const HOLE_SIZE_MIN = 110; // Минимальная ширина прохода
+    const MAX_DIFFICULTY = 300; 
 
     // --- LANGUAGE PACKS ---
     const LANGUAGES = {
@@ -130,7 +131,7 @@ window.onload = function() {
             TITLE: 'ULTIMATE SKY DIVER',
             LOAD: 'Загрузка максимальной версии...',
             PLAY: 'НАЧАТЬ ПАДЕНИЕ',
-            RETRY: 'ПОПРОБОВАТЫ СНОВА',
+            RETRY: 'ПОПРОБОВАТЬ СНОВА',
             CRASHED: 'РАЗБИЛИСЬ!',
             DEPTH: 'ГЛУБИНА',
             FINAL_DEPTH: 'ФИНАЛЬНАЯ ГЛУБИНА',
@@ -336,9 +337,26 @@ window.onload = function() {
         player.fallSpeed = PLAYER_BASE_FALL + (difficulty * 6); 
         player.speed = PLAYER_BASE_SPEED + (difficulty * 5); 
 
-        const currentHole = HOLE_SIZE - (difficulty * 60); 
+        // 1. Расчет ширины прохода
+        const currentHole = HOLE_SIZE_START - (difficulty * (HOLE_SIZE_START - HOLE_SIZE_MIN));
         
-        const holeX = Math.random() * (GAME_WIDTH - currentHole - 40) + 20;
+        // 2. Расчет безопасной области спавна
+        // Минимальный безопасный отступ (Радиус шарика + небольшой запас)
+        const SAFE_PADDING = player.radius + 5;
+        const minX = SAFE_PADDING; 
+        // Максимальная X-позиция для начала отверстия
+        const maxX = GAME_WIDTH - currentHole - SAFE_PADDING; 
+
+        // 3. Генерация X-координаты прохода
+        let holeX;
+        if (maxX <= minX) {
+            // Если экран слишком узкий, центрируем проход
+            holeX = (GAME_WIDTH - currentHole) / 2;
+        } else {
+            // Случайная позиция в безопасной области
+            holeX = Math.random() * (maxX - minX) + minX;
+        }
+
         const y = lastWallY + WALL_SPACING;
         
         walls.push({ y: y, holeX: holeX, holeW: currentHole, h: WALL_HEIGHT, passed: false, color: '#6B4423' });
@@ -366,10 +384,9 @@ window.onload = function() {
         createAirParticle();
         updateParticles(deltaTime);
         
-        // Обновление облаков (Бесконечная генерация)
+        // Обновление облаков
         clouds.forEach(c => {
             c.x += c.speedX;
-            // Перезапуск облаков, которые ушли за экран или далеко вверх
             if (c.y - cameraY < -c.size * 2 || c.x < -c.size * 2 || c.x > GAME_WIDTH + c.size * 2) {
                 c.y = cameraY + GAME_HEIGHT + Math.random() * 200;
                 c.x = Math.random() * GAME_WIDTH;
@@ -381,7 +398,10 @@ window.onload = function() {
             const wall = walls[i];
             
             if(player.y > wall.y && player.y < wall.y + wall.h) {
-                if(player.x - player.radius < wall.holeX || player.x + player.radius > wall.holeX + wall.holeW) {
+                // Проверка столкновения: центр игрока должен находиться на безопасном расстоянии от краев прохода
+                const isInsideHole = (player.x > wall.holeX + player.radius) && (player.x < wall.holeX + wall.holeW - player.radius);
+
+                if (!isInsideHole) {
                     createDebrisExplosion(player.x, player.y);
                     state = 'GAMEOVER';
                     // Обновление рекорда
@@ -455,7 +475,7 @@ window.onload = function() {
 
         const pOffset = -cameraY; 
 
-        // 2. Горы (Дальний план, Parallax * 0.05)
+        // 2. Горы (Дальний план)
         ctx.fillStyle = '#4a6743'; 
         ctx.beginPath();
         const mountainY = GAME_HEIGHT + pOffset * 0.05; 
@@ -468,7 +488,7 @@ window.onload = function() {
         ctx.lineTo(0, GAME_HEIGHT);
         ctx.fill();
 
-        // 3. Облака (Parallax * 0.15)
+        // 3. Облака (Параллакс)
         ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
         clouds.forEach(c => {
             const drawY = c.y + pOffset * 0.15;
@@ -477,7 +497,7 @@ window.onload = function() {
             }
         });
 
-        // 4. Виньетка (Новая функция)
+        // 4. Виньетка (Фокусировка)
         const vignette = ctx.createRadialGradient(GAME_WIDTH / 2, GAME_HEIGHT / 2, 0, GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_HEIGHT);
         vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
         vignette.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
@@ -534,7 +554,6 @@ window.onload = function() {
                     const radius = player.radius * alpha * 0.7;
                     ctx.beginPath();
                     ctx.arc(pos.x, pos.y - cameraY, radius, 0, Math.PI * 2);
-                    // Безопасное использование цвета с прозрачностью
                     ctx.fillStyle = player.color.replace('rgb', 'rgba').replace(')', `, ${alpha * 0.5})`);
                     ctx.fill();
                 });
@@ -549,7 +568,6 @@ window.onload = function() {
             }
 
             // 6. Draw Score (HUD)
-            // Использование стандартного шрифта Arial для надежности в Canvas
             ctx.font = '24px Arial, sans-serif'; 
             ctx.fillStyle = '#000'; 
             ctx.textAlign = 'left';
